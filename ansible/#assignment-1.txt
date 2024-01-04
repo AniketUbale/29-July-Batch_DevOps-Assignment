@@ -1,0 +1,51 @@
+--- #assignment-1
+- hosts: server
+  user: ansible
+  connection: ssh
+  become: yes
+  gather_facts: yes
+
+  vars:
+    pkgname1: git
+    pkgname2: maven
+    pkgname3: java-1.8.0-openjdk-demo.x86_64
+    pkgname3: tomcat
+
+  tasks:
+    - name: install git
+      yum:
+        name: "{{pkgname1}}"
+        state: present
+
+    - name: install java
+      yum:
+        name: "{{pkgname3}}"
+        state: present
+
+    - name: install tomcat
+      get_url:
+        url: https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.84/bin/apache-tomcat-9.0.84.zip
+        dest: /home/ansible/
+
+    - name: unzip tomcat
+      unarchive:
+        src: /home/ansible/apache-tomcat-9.0.84.zip
+        dest: /home/ansible/
+        remote_src: yes
+
+    - name: full permission for tomcat
+      command: chmod -R 777 apache-tomcat-9.0.84
+
+    - name: start tomcat
+      shell: nohup /home/ansible/apache-tomcat-9.0.84/bin/startup.sh &
+
+
+    - name: copy
+      copy:
+        src: /home/ansible/project/target/LoginWebApp.war
+        dest: /home/ansible/apache-tomcat-9.0.84/webapps/
+
+    - name: change file permission
+      file:
+        path: /home/ansible/apache-tomcat-9.0.84/webapps/LoginWebApp.war
+        mode: "777"
